@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2009 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<head>
+  <title>Google Earth API Samples - Maps/Earth Integration</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+  <!-- You should probably remove most of this extra cruft if you're copying
+       this sample! -->
+  <style type="text/css">@import "static/examples.css";</style>
+  <style type="text/css">@import "static/prettify/prettify.css";</style>
+  <script type="text/javascript" src="static/prettify/prettify.js"></script>
+  
+  <!-- Change the key below to your own Maps API key -->
+  <script type="text/javascript" src="http://www.google.com/jsapi?hl=en&amp;key=ABQIAAAAwbkbZLyhsmTCWXbTcjbgbRSzHs7K5SvaUdm8ua-Xxy_-2dYwMxQMhnagaawTo7L1FE1-amhuQxIlXw"></script>
+  <script type="text/javascript">
+  /* <![CDATA[ */
+  var map;
+  
+  google.load("maps", "2.x"); // don't use 2.x in production!
+  
+  function init() {
+    map = new GMap2(document.getElementById('map3d'));
+    map.setCenter(new GLatLng(37, -122), 12);
+  
+    var mapui = map.getDefaultUI();
+    mapui.maptypes.physical = false;
+    map.setUI(mapui);
+  
+    // add 'Earth' as one of the map types
+    map.addMapType(G_SATELLITE_3D_MAP);
+    
+    // create a marker
+    var marker = new GMarker(new GLatLng(37, -122));
+    GEvent.addListener(marker, "click", function() {
+      var html = '<div style="width: 210px; padding-right: 10px">Hello world!</div>';
+      marker.openInfoWindowHtml(html);
+    });
+    
+    map.addOverlay(marker);
+    google.maps.Event.trigger(marker, "click");
+  
+    // create a polyline (LineString Placemark in KML)
+    var polyline = new GPolyline([
+        new GLatLng(37.04, -122.04),
+        new GLatLng(37.02, -122.02),
+        new GLatLng(37.03, -122.01),
+        new GLatLng(37.01, -121.99)
+      ], "#ff0000", 10);
+    
+    map.addOverlay(polyline);
+    
+    // do stuff with Earth
+    map.getEarthInstance(function(ge) {
+      doStuffWithEarth(ge);
+    });
+  }
+  
+  function doStuffWithEarth(ge) {
+    document.getElementById('installed-plugin-version').innerHTML =
+      ge.getPluginVersion().toString();
+  }
+  
+  /* ]]> */
+  </script>
+</head>
+<body onload="if(window.prettyPrint)prettyPrint();init();">
+  <h1>Google Earth API Samples - Maps/Earth Integration</h1>
+  <dl>
+            <dt>Last Modified:</dt><dd>07/15/2009</dd>
+    <dt>Installed Plugin Version:</dt><dd id="installed-plugin-version">...</dd>
+  </dl>
+  <div style="clear: both;"></div>
+  
+  <div id="ui" style="position: relative;">
+    <div id="map3d" style="border: 1px solid silver; width: 500px; height: 500px;"></div>
+
+    <div id="extra-ui" style="position: absolute; left: 520px; top: 0;">
+      <h2>Relevant Resources:</h2>
+      <ul>
+<li><a href="http://code.google.com/apis/maps/documentation/reference.html">Maps API Reference</a></li>
+<li><a href="http://code.google.com/apis/maps/documentation/reference.html#GMapType">GMapType Reference</a></li>
+<a id="playground-button" href="http://code.google.com/apis/ajax/playground/?exp=earth#maps/earth_integration"><img src="static/playground-button.png"/></a>      </ul>
+      <h2>Relevant Code Excerpt:</h2>      <pre class="prettyprint lang-js">var map;
+
+google.load(&quot;maps&quot;, &quot;2.x&quot;); // don't use 2.x in production!
+
+function init() {
+  map = new GMap2(document.getElementById('map3d'));
+  map.setCenter(new GLatLng(37, -122), 12);
+
+  var mapui = map.getDefaultUI();
+  mapui.maptypes.physical = false;
+  map.setUI(mapui);
+
+  // add 'Earth' as one of the map types
+  map.addMapType(G_SATELLITE_3D_MAP);
+  
+  // create a marker
+  var marker = new GMarker(new GLatLng(37, -122));
+  GEvent.addListener(marker, &quot;click&quot;, function() {
+    var html = '&lt;div style=&quot;width: 210px; padding-right: 10px&quot;&gt;Hello world!&lt;/div&gt;';
+    marker.openInfoWindowHtml(html);
+  });
+  
+  map.addOverlay(marker);
+  google.maps.Event.trigger(marker, &quot;click&quot;);
+
+  // create a polyline (LineString Placemark in KML)
+  var polyline = new GPolyline([
+      new GLatLng(37.04, -122.04),
+      new GLatLng(37.02, -122.02),
+      new GLatLng(37.03, -122.01),
+      new GLatLng(37.01, -121.99)
+    ], &quot;#ff0000&quot;, 10);
+  
+  map.addOverlay(polyline);
+  
+  // do stuff with Earth
+  map.getEarthInstance(function(ge) {
+    doStuffWithEarth(ge);
+  });
+}</pre>    </div>
+  </div>
+</body>
+</html>

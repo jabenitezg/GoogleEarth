@@ -1,0 +1,62 @@
+
+https://developers.google.com/maps/?hl=es
+
+API de Google Maps para Android: biblioteca externa
+https://developers.google.com/maps/documentation/android/?hl=es
+
+Geoloc html5
+http://blog.jorgeivanmeza.com/2011/06/como-acceder-a-la-geolocalizacion-desde-javascript/
+
+Layers
+https://developers.google.com/earth/documentation/layers
+
+Satus Bar
+https://developers.google.com/earth/documentation/options
+
+http://www.rtigger.com/presentations/geolocation.html#slide6
+
+http://www.nerdcoder.com/obtener-coordenadas-geograficas-de-tus-visitantes/
+
+http://diveinto.html5doctor.com/geolocation.html
+
+http://www.codediesel.com/javascript/adding-html5-geolocation-to-your-applications/
+
+http://stackoverflow.com/questions/10487003/google-maps-api-v3-adding-updating-markers
+
+https://developers.google.com/earth/documentation/debugging
+
+https://developers.google.com/earth/documentation/sky_mars_moon?hl=es
+https://developers.google.com/earth/documentation/sky_mars_moon
+http://earth-api-samples.googlecode.com/svn/trunk/examples/
+http://code.google.com/apis/ajax/playground/?exp=earth#mars/alternate_server_connectivity
+
+Direccion:
+http://earth-api-samples.googlecode.com/svn/trunk/examples/geocoder.html
+
+Maps Satellite Integration
+http://earth-api-samples.googlecode.com/svn/trunk/examples/maps-integration.html
+
+Control Navegacion
+
+http://earth-api-samples.googlecode.com/svn/trunk/examples/navigationcontrol.html
+
+Placemark draggable
+http://earth-api-samples.googlecode.com/svn/trunk/examples/placemark-dragdrop.html
+
+https://code.google.com/p/earth-api-samples/
+
+
+Set Place Holder
+http://code.google.com/apis/ajax/playground/?exp=earth#hit-testing_%28x/y_to_lat/lon%29
+
+http://www.i-programmer.info/projects/36-web/1229-getting-started-with-google-earth.html
+
+
+http://earth-api-samples.googlecode.com/svn/trunk/demos/milktruck/index.html
+
+
+http://www.barnabu.co.uk/ge-plugin/
+
+http://www.earthswoop.com/
+
+http://www.google.com/earth/outreach/tutorials/kmlembed.html

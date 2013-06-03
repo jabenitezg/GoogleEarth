@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Google Earth API Sample</title>
+    <script src="http://www.google.com/jsapi?key=ABQIAAAAuPsJpk3MBtDpJ4G8cqBnjRRaGTYH6UMl8mADNa0YKuWNNa8VNxQCzVBXTx2DYyXGsTOxpWhvIG7Djw" type="text/javascript"></script>
+    <script type="text/javascript">
+    var ge;
+	var map;
+    
+    var globePlacemark = null;
+    var terrainPlacemark = null;
+    var buildingsPlacemark = null;
+    
+    google.load("earth", "1");
+	google.load("maps", "2");
+    
+    function init() {
+	  var initiallatitude = -25.2821777;
+	  var initiallongitude = -57.6320631;
+
+	  map = new GMap2(document.getElementById('map3d'));
+      map.setCenter(new GLatLng(initiallatitude, initiallongitude), 12);
+      var mapui = map.getDefaultUI();
+      mapui.maptypes.physical = false;
+      map.setUI(mapui);
+
+      // add 'Earth' as one of the map types
+      map.addMapType(G_SATELLITE_3D_MAP);	  
+
+	  google.earth.setLanguage('es');
+	  google.earth.createInstance('map3d', initCallback, failureCallback);
+      addSampleUIHtml(
+        'Geo loc latitude: <span id="geoloclatitude" style="color:#ccc;">N/A</span>'
+      );
+      addSampleUIHtml(
+        'Geo loc longitude: <span id="geoloclongitude" style="color:#ccc;">N/A</span><br/>'
+      );
+	  addSampleUIHtml(
+        'Ground Altitude at Mouse: <span id="ground-altitude" style="color:#ccc;">N/A</span>'
+      );
+      addSampleUIHtml(
+        'Latitude at Mouse: <span id="latitude" style="color:#ccc;">N/A</span>'
+      );
+      addSampleUIHtml(
+        'Longitude at Mouse: <span id="longitude" style="color:#ccc;">N/A</span><br/>'
+      );
+	  addSampleUIHtml(
+        '<style type="text/css">' +
+        '  #progress-container { width: 250px; height: 10px; border: 1px solid #ccc; }' +
+        '  #progress-bar { width: 0; height: 10px; }' +
+        '</style>' +
+		'<br/>'+
+        'Data Streaming Progress:' +
+        '<div id="progress-container">' +
+        '  <div id="progress-bar"></div>' +
+        '</div><br/>'
+      );	  
+	  addSampleUIHtml(
+		'<input id="location" type="text" value="Limpio, PY"/>'
+	  );
+	  addSampleButton('Show Terrain', showTerrain);
+      addSampleButton('Hide Terrain', hideTerrain);
+	  addSampleButton('Show buildings', showBuildingsClick);
+      addSampleButton('Hide buildings', hideBuildingsClick);
+      addSampleButton('Are Buildings Visible?', areBuildingsVisibleClick);
+      //addSampleButton('Show Nav Controls', visShowClick);
+      //addSampleButton('Auto Show/Hide Nav Controls', visAutoClick);
+      //addSampleButton('Hide Nav Controls', visHideClick);
+	  addSampleButton('Show gray buildings', showGrayBuildingsClick);
+      addSampleButton('Hide gray buildings', hideGrayBuildingsClick);
+	  addSampleButton('Fly Here!', FlyClick);
+      // do stuff with Earth when the user switches to it
+      GEvent.addListener(map, 'maptypechanged', function() {
+        if (ge)
+          return;
+    
+        map.getEarthInstance(function(pluginInstance) {
+          ge = pluginInstance;
+          //doStuffWithEarth();
+        });
+      });
+
+	  }
+    
+	  function addSampleButton(caption, clickHandler) {
+		var btn = document.createElement('input');
+		btn.type = 'button';
+		btn.value = caption;
+		
+		if (btn.attachEvent)
+		  btn.attachEvent('onclick', clickHandler);
+		else
+		  btn.addEventListener('click', clickHandler, false);
+
+		// add the button to the Sample UI
+		document.getElementById('sample-ui').appendChild(btn);
+	  }
+	  
+      function addSampleUIHtml(html) {
+        document.getElementById('sample-ui').innerHTML += html;
+      }	  
+	  
+    function initCallback(instance) {
+      ge = instance;
+      ge.getWindow().setVisibility(true);
+    
+      // add a navigation control
+      ge.getNavigationControl().setVisibility(ge.VISIBILITY_AUTO);
+	  ge.getOptions().setStatusBarVisibility(true);
+	  ge.getOptions().setScaleLegendVisibility(true);
+	  ge.getOptions().setUnitsFeetMiles(false);	  
+    
+      var la = ge.createLookAt('');
+      //la.set(37.8018, -122.4060, 0, ge.ALTITUDE_RELATIVE_TO_GROUND, 15, 53, 227);
+	  var initiallatitude = -25.2821777;
+	  var initiallongitude = -57.6320631;
+	  
+	  if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(position) {
+			initiallatitude = position.coords.latitude;
+			initiallongitude = position.coords.longitude;
+			var statusHTMLgeoloclatitude = 'N/A';
+			var statusHTMLgeoloclongitude = 'N/A';
+            statusHTMLgeoloclatitude = '<span style="color:#000; font-weight:bold;">' +
+                initiallatitude + ' </span>';
+            statusHTMLgeoloclongitude = '<span style="color:#000; font-weight:bold;">' +
+                initiallongitude + ' </span>';
+			document.getElementById('geoloclatitude').innerHTML = statusHTMLgeoloclatitude;
+			document.getElementById('geoloclongitude').innerHTML = statusHTMLgeoloclongitude;
+			//alert ("lat:"+latitude+" long:"+longitude);
+		 }, function(error) {
+			alert("Código de error: " + error.code);
+			// error.code can be:
+			//   0: unknown error
+			//   1: permission denied
+			//   2: position unavailable (error response from locaton provider)
+			//   3: timed out
+		 } );
+	  };
+    
+	  la.set(initiallatitude, initiallongitude, 0, // latitude, longitude, altitude
+       	     ge.ALTITUDE_RELATIVE_TO_GROUND,
+			 0, // heading: grados desde el norte
+			 0, // straight-down tilt
+			 500 // range inverse of zoom
+			 );
+
+      ge.getView().setAbstractView(la);
+    
+      // add some layers
+      ge.getLayerRoot().enableLayerById(ge.LAYER_TERRAIN, true); //LAYER_TERRAIN - 3D terrain
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS, true); //LAYER_BUILDINGS - 3D buildings
+	  ge.getLayerRoot().enableLayerById(ge.LAYER_BORDERS, true); //LAYER_BORDERS - shows country and area borders, and place labels for cities, states, countries, oceans, etc
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS_LOW_RESOLUTION, true); //LAYER_BUILDINGS_LOW_RESOLUTION - grey buildings (non-photorealistic)
+      ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS, true); //LAYER_ROADS - displays roads and road names
+	  ge.getLayerRoot().enableLayerById(ge.LAYER_TREES, true); //LAYER_TREES - 3D tree models
+
+
+      google.earth.addEventListener(ge.getGlobe(), 'click', function(evt) {
+        if (evt.getButton() != 0)
+          return;
+    
+        // remove old placemarks
+        if (globePlacemark)
+          ge.getFeatures().removeChild(globePlacemark);
+        if (terrainPlacemark)
+          ge.getFeatures().removeChild(terrainPlacemark);
+        if (buildingsPlacemark)
+          ge.getFeatures().removeChild(buildingsPlacemark);
+    
+        // hit test and create new placemarks
+        var hitTestResult = ge.getView().hitTest(evt.getClientX(), ge.UNITS_PIXELS, evt.getClientY(), ge.UNITS_PIXELS, ge.HIT_TEST_GLOBE);
+        if (hitTestResult) {
+          globePlacemark = makePlacemark(hitTestResult.getLatitude(), hitTestResult.getLongitude(),
+              hitTestResult.getAltitude(), ge.ALTITUDE_ABSOLUTE, 'G');
+          ge.getFeatures().appendChild(globePlacemark);
+        }
+    
+        hitTestResult = ge.getView().hitTest(evt.getClientX(), ge.UNITS_PIXELS, evt.getClientY(), ge.UNITS_PIXELS, ge.HIT_TEST_TERRAIN);
+        if (hitTestResult) {
+          terrainPlacemark = makePlacemark(hitTestResult.getLatitude(), hitTestResult.getLongitude(),
+              hitTestResult.getAltitude(), ge.ALTITUDE_ABSOLUTE, 'T');
+          ge.getFeatures().appendChild(terrainPlacemark);
+        }
+    
+        hitTestResult = ge.getView().hitTest(evt.getClientX(), ge.UNITS_PIXELS, evt.getClientY(), ge.UNITS_PIXELS, ge.HIT_TEST_BUILDINGS);
+        if (hitTestResult) {
+          buildingsPlacemark = makePlacemark(hitTestResult.getLatitude(), hitTestResult.getLongitude(),
+              hitTestResult.getAltitude(), ge.ALTITUDE_ABSOLUTE, 'B');
+          ge.getFeatures().appendChild(buildingsPlacemark);
+        }
+      });
+    
+      document.getElementById('installed-plugin-version').innerHTML =
+        ge.getPluginVersion().toString();
+		
+      // listen to the click event on the globe and window
+      google.earth.addEventListener(ge.getWindow(), 'mousemove', function(event) {
+        var statusHTML = 'N/A';
+        if (event.getDidHitGlobe()) {
+          var latitude = event.getLatitude();
+          var longitude = event.getLongitude();
+    
+          var groundAltitude = ge.getGlobe().getGroundAltitude(latitude, longitude);
+          if (groundAltitude) {
+            statusHTMLaltitude = '<span style="color:#000; font-weight:bold;">' +
+                groundAltitude + ' meters</span>';
+          }
+          if (latitude) {
+            statusHTMLlatitude = '<span style="color:#000; font-weight:bold;">' +
+                latitude + ' </span>';
+          }
+          if (longitude) {
+            statusHTMLlongitude = '<span style="color:#000; font-weight:bold;">' +
+                longitude + ' </span>';
+          }
+        }
+    
+        document.getElementById('ground-altitude').innerHTML = statusHTMLaltitude;
+        document.getElementById('latitude').innerHTML = statusHTMLlatitude;
+        document.getElementById('longitude').innerHTML = statusHTMLlongitude;
+		});
+
+	  // Update streaming progress every 100ms
+      setInterval(function() {
+        var streamingPercent = ge.getStreamingPercent();
+        var progressBar = document.getElementById('progress-bar');
+        if (streamingPercent == 100) {
+          // streaming complete, hide the progress bar
+          progressBar.style.backgroundColor = '#0a0';
+          progressBar.style.width = '250px';
+        } else {
+          // show the progress bar, max width is 250 as per the stylesheet
+          progressBar.style.backgroundColor = '#00f';
+          progressBar.style.width = (250 * streamingPercent / 100) + 'px';
+        }
+      }, 100);
+		
+    }
+    
+    function failureCallback(errorCode) {
+    }
+
+    function showTerrain() {
+      var layerRoot = ge.getLayerRoot();
+      var terrainLayer = layerRoot.getLayerById(ge.LAYER_TERRAIN);
+      terrainLayer.setVisibility(true);
+      // shortcut:
+      // layerRoot.enableLayerById(ge.LAYER_TERRAIN, true);
+    }
+    
+    function hideTerrain() {
+      var layerRoot = ge.getLayerRoot();
+      var terrainLayer = layerRoot.getLayerById(ge.LAYER_TERRAIN);
+      terrainLayer.setVisibility(false);
+      // shortcut:
+      // layerRoot.enableLayerById(ge.LAYER_TERRAIN, false);
+    }
+
+	function showBuildingsClick() {
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS, true);
+      // NOTE: you can use LAYER_BUILDINGS_LOW_RESOLUTION for gray buildings
+    }
+    
+    function hideBuildingsClick() {
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS, false);
+    }
+    
+    function areBuildingsVisibleClick() {
+      alert(getInheritedVisibility(
+        ge.getLayerRoot().getLayerById(ge.LAYER_BUILDINGS)) ?
+          'Buildings are visible' : 'Buildings are NOT visible');
+    }
+
+    function showGrayBuildingsClick() {
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS_LOW_RESOLUTION, true);
+    }
+    
+    function hideGrayBuildingsClick() {
+      ge.getLayerRoot().enableLayerById(ge.LAYER_BUILDINGS_LOW_RESOLUTION, false);
+    }
+    
+    function getInheritedVisibility(layer) {
+      if (!layer.getVisibility()) {
+        return false;
+      } else {
+        var parent = layer.getParentNode();
+        if (!parent)
+          return true;
+    
+        return getInheritedVisibility(parent);
+      }
+    }
+    function FlyClick() {
+      var geocodeLocation = document.getElementById('location').value;
+    
+      var geocoder = new google.maps.ClientGeocoder();
+      geocoder.getLatLng(geocodeLocation, function(point) {
+        if (point) {
+          var lookAt = ge.createLookAt('');
+          lookAt.set(point.y, point.x, 10, ge.ALTITUDE_RELATIVE_TO_GROUND,
+                     0, 60, 20000);
+          ge.getView().setAbstractView(lookAt);
+        }
+      });
+    }
+    
+    function makePlacemark(lat, lng, alt, altMode, iconStr) {
+      var icon = ge.createIcon('');
+      icon.setHref('http://maps.google.com/mapfiles/kml/paddle/' + iconStr + '.png');
+    
+      var style = ge.createStyle('');
+      style.getIconStyle().setIcon(icon);
+      style.getIconStyle().getHotSpot().set(0.5, ge.UNITS_FRACTION, 0, ge.UNITS_FRACTION);
+    
+      var pt = ge.createPoint('');
+      pt.set(lat, lng, alt, altMode, false, false);
+    
+      var pm = ge.createPlacemark('');
+      pm.setGeometry(pt);
+      pm.setStyleSelector(style);
+    
+      return pm;
+    }
+    
+    </script>
+  </head>
+  <body onload="init()" style="font-family: arial, sans-serif; font-size: 13px; border: 0;">
+    <div id="sample-ui"></div>
+    <div id="map3d" style="width: 800px; height: 680px;"></div>
+    <br>
+    <div>Installed Plugin Version: <span id="installed-plugin-version" style="font-weight: bold;">Loading...</span></div>
+  </body>
+</html>

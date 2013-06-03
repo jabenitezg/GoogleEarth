@@ -1,0 +1,42 @@
+<html>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<head>
+	<title>Hello Google Earth!</title>
+	<!-- *** Replace the key below below with your own API key, available at http://code.google.com/apis/maps/signup.html *** -->
+	<script src="http://www.google.com/jsapi?key=abcd"></script>
+	<script type="text/javascript">
+		google.load("earth", "1");
+		var ge = null;
+
+		function init() {
+			google.earth.createInstance("map3d", initCallback, failureCallback, {
+				database: 'http://khmdb.google.com/?db=moon',
+				username: '',
+				password: '' // If your server requires these.
+		   });
+		}
+
+		function initCallback(object) {
+		ge = object;
+		ge.getWindow().setVisibility(true);
+		}
+
+		function failureCallback(object) {
+		// Gracefully handle failure.
+		}
+		
+	</script>
+</head>
+	<body onload='init()' id='body'>
+		<center>
+			<div>
+			   Hello, Earth2!
+			</div>
+
+			<div id='amap3d_container' style='border: 1px solid silver; height: 600px; width: 800px;'>
+			   <div id='map3d' style='height: 100%;'>
+			   </div>
+			</div>
+		</center>
+	</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head> 
+<title>Google Earth API Demo Gallery</title>
+<style type="text/css">
+  body {
+    font-family: Arial, sans serif;
+    font-size: 12px;
+  }
+  td {
+    border: none;
+    background-color: #eee;
+  }
+  tr.external td {
+    background-color: #ddf;
+  }
+  img { 
+    border: 1px solid #888;
+  }
+</style>
+
+<script type="text/javascript">
+//<![CDATA[
+var feed;
+var curNum;
+
+var topics = [
+  ['kml', 'KML'],
+  ['basic', 'Basic Samples'],
+  ['3dmodel', '3D Models (COLLADA)'],
+  ['mapsint', 'Maps/Earth Integration'],
+  ['mashup', 'Mashups w/ other APIs'],
+  ['geometry', 'Geometries'],
+  ['balloon', 'Balloon Windows'],
+  ['view', 'LookAt and Camera'],
+  ['events', 'Events'],
+  ['networklink', 'Network Links'],
+  ['sky', 'Sky Mode'],
+  ['fiveoh', 'New Features in 5.0'],
+  ['utillib', 'Utility Libraries']
+];
+
+topics = topics.sort()
+
+// Change these parameters to customize map
+function cm_load() {  
+  document.getElementById("searchbox").value = getURLParam("searchquery");
+  createTopicSelect();
+  cm_getJSON(true);
+}
+
+/**
+* Utility function to extract parameters appended to URL.
+* @param {String} name Name of parameter in URL
+* @return {String} Value of parameter, or "" if not found
+*/
+function getURLParam(name) {
+  var regexS = "[\\?&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(window.location.href);
+  return (results === null ? "" : results[1]);
+}
+
+function cm_loadSamplesJSON(json) {
+  feed = json.feed;
+  curNum = 0;
+  if ( !feed.entry) {
+    document.getElementById("sidebar").innerHTML = "No results.";
+  } 
+  updateGallery();
+    
+  if (!feed.entry || feed.entry.length <=5) {
+    document.getElementById("nextBUTTON").disabled = true;
+  } else {
+    document.getElementById("nextBUTTON").disabled = false;
+  }
+  document.getElementById("previousBUTTON").disabled = true;
+}
+
+function updateGallery() {
+  if (!feed.entry)
+    return;
+  var min = curNum;
+  var max = Math.min(curNum+5, feed.entry.length);
+  var htmlAll = ['<br/>Showing ' + (min + 1) + ' - ' + max + ' of ' + feed.entry.length];
+  var topic = document.getElementById('topicdropdown').value;
+  var searchTerm = document.getElementById('searchbox').value;
+  var searchLink = 'http://code.google.com/apis/earth/documentation/demogallery.html' + '?searchquery=' + searchTerm + '&topic=' + topic;
+  htmlAll.push('  (<a href="' + searchLink + '" target="_blank">Link to this search</a>)');
+  htmlAll.push('<table><tbody>');
+  for (var i = min; i < max; i++) {
+      var entry = feed.entry[i];
+      var title = entry.gsx$title.$t;
+      
+      var author = entry.gsx$author.$t;
+      var authorurl = entry.gsx$authorurl.$t;
+      var external = (entry.gsx$external.$t.toLowerCase() == 'yes');
+      
+      var description = entry.gsx$description.$t;
+      var thumbnailurl = entry.gsx$thumbnailurl.$t;
+      var srcurl = entry.gsx$srcurl.$t;
+      
+      var url = entry.gsx$url.$t;
+      var topicsUsed = [];
+      for (var j = 0; j < topics.length; j++) {
+        var topicColumnName = 'gsx$topic' + topics[j][0].toLowerCase();
+        if (entry[topicColumnName] && entry[topicColumnName].$t.replace(/\s/g, '') != '') {
+          topicsUsed.push(topics[j][1]);
+        }
+      }
+      var html = '<tr class="' + (external ? 'external' : 'internal') + '">' + '<td><a target="_blank" href="' + url + '">' +
+        '<img style="width: 160px; height: 128px" src="' + thumbnailurl + '"/></a></td>' +
+        '<td valign="top">' +
+        
+        '<strong>' +
+        '<a target="_blank" href="' + url + '">' + title + '</a>' +
+        '<span style="font-style: italic;">' +
+        (external ? ' Community Demo' : '') + ' by ' +
+        (authorurl ? '<a href="' + authorurl + '">' + author + '</a>' : author) +
+        '</span></strong>' +
+        
+        (srcurl ? '<p style="margin-top: 0; font-size: 10px; font-style: italic;"><a target="_blank" href="' + srcurl + '">See full source</a></p>' : '') +
+        '<p>' + description + '</p>';
+      if (topicsUsed.length > 0) {
+        html += '<p>Topics covered: <em>' + topicsUsed.join(', ') + '</em></p>';
+      }
+      html += '</td></tr>';
+      htmlAll.push(html);
+  }
+  htmlAll.push('</tbody></table>');
+  document.getElementById("sidebar").innerHTML = htmlAll.join("");
+}
+
+function showNext() {
+  curNum += 5;
+  updateGallery();
+  document.getElementById("previousBUTTON").disabled = false;
+  if (curNum >= (feed.entry.length - 5)) {
+    document.getElementById("nextBUTTON").disabled = true;
+  }
+}
+
+function showPrevious() {
+  curNum -= 5;
+  updateGallery();
+  if (curNum <= 0) {
+    document.getElementById("previousBUTTON").disabled = true;
+    document.getElementById("previousBUTTON2").disabled = true;
+  } 
+  if (curNum < feed.entry.length) {
+    document.getElementById("nextBUTTON").disabled = false;
+    document.getElementById("nextBUTTON2").disabled = false;
+  }
+}
+function createTopicSelect() {
+  var topicSelect = document.getElementById("topicdropdown");
+
+  var topicOption = document.createElement("option");
+  topicOption.setAttribute("value", '');
+  var txt = document.createTextNode('');
+  topicOption.appendChild(txt);
+  topicSelect.appendChild(topicOption);
+
+  for (var j = 0; j < topics.length; j++){
+    var topic = topics[j];
+    var topicOption = document.createElement("option");
+    topicOption.setAttribute("value",topic[0]);
+    var txt = document.createTextNode(topic[1]);
+    if(topic[0].toLowerCase() == getURLParam("topic").toLowerCase()) {
+      topicOption.setAttribute("selected", true);
+    }
+    topicOption.appendChild(txt);
+    topicSelect.appendChild(topicOption);
+  }
+}
+
+/**
+ * Creates a script tag in the page that loads in the 
+ * JSON feed for the specified key/ID. 
+ * Once loaded, it calls cm_loadMapJSON.
+ */
+function cm_getJSON(preferSearch) {
+  var queryAndSort = '?reverse=true&orderby=column:generalweight';
+
+  var searchTerm = document.getElementById('searchbox').value;
+  if (searchTerm != '' && preferSearch) {
+    document.getElementById('topicdropdown').selectedIndex = 0;
+    queryAndSort = '?reverse=true' +
+                   '&orderby=column:generalweight' +
+                   '&q=' + searchTerm.toLowerCase();
+  }
+
+  var topic = document.getElementById('topicdropdown').value;
+  if ((topic != '' && !preferSearch) || (topic != '' && searchTerm == '')) {
+    document.getElementById('searchbox').value = '';
+    queryAndSort = '?reverse=true' +
+                   '&orderby=column:topic' + topic.toLowerCase() +
+                   '&sq=topic' + topic.toLowerCase() + escape('!=""');
+  }
+  
+  try {
+    //urchinTracker('/search/' + query); 
+  } catch(err) {
+  }
+  var script = document.createElement('script');
+  script.setAttribute('src', 'http://spreadsheets.google.com/feeds/list/pekCIUp4X0pTOCT5YGYb8TQ/od6/public/values' +
+                        queryAndSort + 
+                        '&alt=json-in-script&callback=cm_loadSamplesJSON');
+  script.setAttribute('id', 'jsonScript');
+  script.setAttribute('type', 'text/javascript');
+  document.documentElement.firstChild.appendChild(script);
+}
+
+
+//]]>
+
+</script>
+
+</head>
+<body onload="cm_load()">
+
+<!-- ++Begin GSpreadsheets Map Wizard Generated Code++ -->
+<form action="demogallery.html" onsubmit="cm_getJSON(true); return false;" method="get">
+Enter keyword <input type="text" id="searchbox" value="" /> <input type="submit" value="Search" onclick="cm_getJSON(true)" />
+
+ or select a topic <select id="topicdropdown" onchange="cm_getJSON(false)"></select>
+</form>
+<br/>
+<input type="button" onclick="showPrevious()" value="Previous" id="previousBUTTON"/>
+<input type="button" onclick="showNext()" value="Next" id="nextBUTTON"/>
+<br/>
+<div id="sidebar">Loading...</div>
+<br/>
+<input type="button" onclick="showPrevious()" value="Previous" id="previousBUTTON2"/>
+<input type="button" onclick="showNext()" value="Next" id="nextBUTTON2"/>
+</body> </html>
+
